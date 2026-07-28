@@ -1,20 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { addMood, getMoods } from "@/services/moodService";
 
 const moods = ["Happy", "Calm", "Neutral", "Anxious", "Sad"];
+
+interface MoodLog {
+  _id: string;
+  moodType: string;
+  note?: string;
+  date: string;
+}
 
 export default function MoodTracker() {
   const [selectedMood, setSelectedMood] = useState("");
   const [note, setNote] = useState("");
-  const [savedLogs, setSavedLogs] = useState<{ mood: string; note: string }[]>([]);
+  const [savedLogs, setSavedLogs] = useState<MoodLog[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
+  useEffect(() => {
+    fetchMoods();
+  }, []);
+
+  const fetchMoods = async () => {
+    try {
+      const res = await getMoods();
+      setSavedLogs(res.data);
+    } catch (error) {
+      console.error("Failed to fetch moods:", error);
+    }
+  };
+
+  const handleSave = async () => {
     if (!selectedMood) return;
 
-    setSavedLogs([...savedLogs, { mood: selectedMood, note }]);
-    setSelectedMood("");
-    setNote("");
+    setLoading(true);
+    try {
+      await addMood({ moodType: selectedMood, note });
+      setSelectedMood("");
+      setNote("");
+      fetchMoods();
+    } catch (error) {
+      console.error("Failed to save mood:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,9 +77,10 @@ export default function MoodTracker() {
 
       <button
         onClick={handleSave}
-        className="bg-zinc-900 text-white px-5 py-2 rounded-lg"
+        disabled={loading}
+        className="bg-zinc-900 text-white px-5 py-2 rounded-lg disabled:opacity-50"
       >
-        Save Mood
+        {loading ? "Saving..." : "Save Mood"}
       </button>
 
       <div className="mt-8">
@@ -58,9 +89,9 @@ export default function MoodTracker() {
           <p className="text-zinc-500">No logs yet.</p>
         ) : (
           <ul className="space-y-2">
-            {savedLogs.map((log, i) => (
-              <li key={i} className="border border-zinc-200 rounded-lg p-3">
-                <span className="font-medium">{log.mood}</span>
+            {savedLogs.map((log) => (
+              <li key={log._id} className="border border-zinc-200 rounded-lg p-3">
+                <span className="font-medium">{log.moodType}</span>
                 {log.note && <span className="text-zinc-600"> — {log.note}</span>}
               </li>
             ))}
