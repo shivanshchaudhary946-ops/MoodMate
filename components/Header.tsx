@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
   const router = useRouter();
-
-  const isLoggedIn = typeof window !== "undefined" && localStorage.getItem("token");
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    logout();
     router.push("/auth/login");
   };
 
@@ -26,10 +26,13 @@ export default function Header() {
           <Link href="/journal">Journal</Link>
           <Link href="/dashboard">Dashboard</Link>
 
-          {isLoggedIn ? (
-            <button onClick={handleLogout} className="text-red-600">
-              Logout
-            </button>
+          {user ? (
+            <>
+              <span className="text-zinc-900">{user.name}</span>
+              <button onClick={handleLogout} className="text-red-600">
+                Logout
+              </button>
+            </>
           ) : (
             <Link href="/auth/login" className="text-zinc-900 font-semibold">
               Login

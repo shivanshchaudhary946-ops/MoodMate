@@ -1,23 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  createJournal,
+  getJournals,
+  deleteJournal,
+} from "@/services/journalService";
 
 interface JournalEntry {
+  _id: string;
   title: string;
   content: string;
+  createdAt: string;
 }
 
 export default function Journal() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
+  useEffect(() => {
+    fetchEntries();
+  }, []);
+
+  const fetchEntries = async () => {
+    try {
+      const res = await getJournals();
+      setEntries(res.data);
+    } catch (error) {
+      console.error("Failed to fetch journals:", error);
+    }
+  };
+
+  const handleSave = async () => {
     if (!title.trim() || !content.trim()) return;
 
-    setEntries([...entries, { title, content }]);
-    setTitle("");
-    setContent("");
+    setLoading(true);
+    try {
+      await createJournal({ title, content });
+      setTitle("");
+      setContent("");
+      fetchEntries();
+    } catch (error) {
+      console.error("Failed to save journal:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteJournal(id);
+      fetchEntries();
+    } catch (error) {
+      console.error("Failed to delete journal:", error);
+    }
   };
 
   return (
@@ -42,9 +80,10 @@ export default function Journal() {
 
       <button
         onClick={handleSave}
-        className="bg-zinc-900 text-white px-5 py-2 rounded-lg"
+        disabled={loading}
+        className="bg-zinc-900 text-white px-5 py-2 rounded-lg disabled:opacity-50"
       >
-        Save Entry
+        {loading ? "Saving..." : "Save Entry"}
       </button>
 
       <div className="mt-8">
@@ -53,10 +92,21 @@ export default function Journal() {
           <p className="text-zinc-500">No entries yet.</p>
         ) : (
           <ul className="space-y-3">
-            {entries.map((entry, i) => (
-              <li key={i} className="border border-zinc-200 rounded-lg p-3">
-                <h3 className="font-medium">{entry.title}</h3>
-                <p className="text-zinc-600 text-sm mt-1">{entry.content}</p>
+            {entries.map((entry) => (
+              <li
+                key={entry._id}
+                className="border border-zinc-200 rounded-lg p-3 flex justify-between items-start"
+              >
+                <div>
+                  <h3 className="font-medium">{entry.title}</h3>
+                  <p className="text-zinc-600 text-sm mt-1">{entry.content}</p>
+                </div>
+                <button
+                  onClick={() => handleDelete(entry._id)}
+                  className="text-red-600 text-sm ml-3"
+                >
+                  Delete
+                </button>
               </li>
             ))}
           </ul>
