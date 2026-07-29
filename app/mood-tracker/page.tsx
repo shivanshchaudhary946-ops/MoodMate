@@ -2,8 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { addMood, getMoods } from "@/services/moodService";
+import { Smile, Wind, Meh, AlertCircle, Frown } from "lucide-react";
 
-const moods = ["Happy", "Calm", "Neutral", "Anxious", "Sad"];
+const moods = [
+  { label: "Happy", icon: Smile, color: "border-yellow-400 bg-yellow-50 text-yellow-700" },
+  { label: "Calm", icon: Wind, color: "border-sky-400 bg-sky-50 text-sky-700" },
+  { label: "Neutral", icon: Meh, color: "border-zinc-400 bg-zinc-50 text-zinc-700" },
+  { label: "Anxious", icon: AlertCircle, color: "border-orange-400 bg-orange-50 text-orange-700" },
+  { label: "Sad", icon: Frown, color: "border-blue-400 bg-blue-50 text-blue-700" },
+];
 
 interface MoodLog {
   _id: string;
@@ -33,7 +40,6 @@ export default function MoodTracker() {
 
   const handleSave = async () => {
     if (!selectedMood) return;
-
     setLoading(true);
     try {
       await addMood({ moodType: selectedMood, note });
@@ -49,20 +55,20 @@ export default function MoodTracker() {
 
   return (
     <div className="p-8 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">How are you feeling today?</h1>
+      <h1 className="text-2xl font-bold mb-1">How are you feeling today?</h1>
+      <p className="text-zinc-500 mb-6 text-sm">Pick a mood and add a quick note if you like.</p>
 
-      <div className="flex gap-3 flex-wrap mb-4">
-        {moods.map((mood) => (
+      <div className="grid grid-cols-5 gap-2 mb-4">
+        {moods.map(({ label, icon: Icon, color }) => (
           <button
-            key={mood}
-            onClick={() => setSelectedMood(mood)}
-            className={`px-4 py-2 rounded-lg border ${
-              selectedMood === mood
-                ? "bg-zinc-900 text-white"
-                : "bg-white text-zinc-700 border-zinc-300"
+            key={label}
+            onClick={() => setSelectedMood(label)}
+            className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all ${
+              selectedMood === label ? color : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300"
             }`}
           >
-            {mood}
+            <Icon className="w-5 h-5" />
+            <span className="text-xs font-medium">{label}</span>
           </button>
         ))}
       </div>
@@ -71,30 +77,40 @@ export default function MoodTracker() {
         value={note}
         onChange={(e) => setNote(e.target.value)}
         placeholder="Add a note about how you're feeling..."
-        className="w-full border border-zinc-300 rounded-lg p-3 mb-4"
+        className="w-full border border-zinc-300 rounded-xl p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
         rows={3}
       />
 
       <button
         onClick={handleSave}
-        disabled={loading}
-        className="bg-zinc-900 text-white px-5 py-2 rounded-lg disabled:opacity-50"
+        disabled={loading || !selectedMood}
+        className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-teal-700 disabled:opacity-50 transition-colors"
       >
         {loading ? "Saving..." : "Save Mood"}
       </button>
 
-      <div className="mt-8">
+      <div className="mt-10">
         <h2 className="text-lg font-semibold mb-3">Your Logs</h2>
         {savedLogs.length === 0 ? (
-          <p className="text-zinc-500">No logs yet.</p>
+          <p className="text-zinc-500 text-sm">No logs yet. Save your first mood above!</p>
         ) : (
           <ul className="space-y-2">
-            {savedLogs.map((log) => (
-              <li key={log._id} className="border border-zinc-200 rounded-lg p-3">
-                <span className="font-medium">{log.moodType}</span>
-                {log.note && <span className="text-zinc-600"> — {log.note}</span>}
-              </li>
-            ))}
+            {savedLogs.slice().reverse().map((log) => {
+              const moodInfo = moods.find((m) => m.label === log.moodType);
+              const Icon = moodInfo?.icon || Meh;
+              return (
+                <li
+                  key={log._id}
+                  className="flex items-start gap-3 border border-zinc-200 rounded-xl p-3 bg-white"
+                >
+                  <Icon className="w-5 h-5 mt-0.5 text-teal-600 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium">{log.moodType}</span>
+                    {log.note && <p className="text-zinc-600 text-sm mt-0.5">{log.note}</p>}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
