@@ -49,3 +49,6 @@ Building this project helped me understand:
 - Authentication flows using JWT and secure password hashing
 - State management with React Context API
 - Debugging real-world issues (DNS resolution, CORS configuration, database connectivity)
+
+**🔗 Live Demo:** [https://mood-mate-two.vercel.app](https://mood-mate-two.vercel.app)
+
