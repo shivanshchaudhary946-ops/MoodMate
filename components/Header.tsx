@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Heart, BarChart3, BookOpen, LogOut, Home } from "lucide-react";
+import { Heart, BarChart3, BookOpen, LogOut, Home, MessageCircle } from "lucide-react";
 
 export default function Header() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function Header() {
     { href: "/mood-tracker", label: "Mood Tracker", icon: Heart },
     { href: "/journal", label: "Journal", icon: BookOpen },
     { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
+    { href: "/chat", label: "AI Chat", icon: MessageCircle },
   ];
 
   return (
