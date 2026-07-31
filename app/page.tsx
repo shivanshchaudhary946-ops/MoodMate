@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Heart, BookOpen, BarChart3 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Home() {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-teal-50 via-white to-teal-50 px-4">
       <div className="flex items-center gap-2 mb-4">
@@ -30,10 +35,10 @@ export default function Home() {
       </div>
 
       <Link
-        href="/auth/register"
+        href={user ? "/dashboard" : "/auth/register"}
         className="mt-10 px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
       >
-        Get Started
+        {user ? "Go to Dashboard" : "Get Started"}
       </Link>
     </div>
   );
